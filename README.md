@@ -14,20 +14,48 @@ This will install the key packages including:
 	- `targets`
 	- `stantargets`
 	- `tachetypes`
-	- `cmdstanr`,
-	- `TinyTex`
+	- `cmdstanr`
+	- `tinytex`
 
 ## Usage
 
+### Forking the Repository and Creating a New Branch
+
+To interact with this repository:
+
+1. Fork the Repository:
+	- Go to the original repository on GitHub.
+	- Click the "Fork" button to create your copy.
+
+2. Clone Your Fork:
+	- Clone it to your machine: git clone [URL of your fork].
+
+3. Create a New Branch:
+	- Inside the cloned directory: git checkout -b [new_branch_name].
+
+4. Stay Updated:
+	- Set the original repository as "upstream" and regularly pull updates.
+
+Benefits of Forking:
+
+- Personal Exploration: Freely experiment with the code without affecting the main repository.
+
+- Version Control: Practice using Git, a crucial skill in complex data analysis.
+
+- Ongoing Updates: Easily merge updates from the main repository into your fork.
+
+
 ### Restoring packages
 
-The following R command reinstall packages recorded in the `renv.lock` file.
+Reinstall packages from `renv.lock`:
 
 ```{r}
 r$ |> renv::restore()
 ```
 
 ### Running code on local
+
+Execute using the provided script (`run.sh`):
 
 ```{bash}
 > run.sh
@@ -42,5 +70,9 @@ Enter number：
 
 ### Exercises
 
-Engage with hands-on exercises provided in `docs/regression.qmd(html)`.
-These exercises are designed to enhance your understanding of regression modeling in Stan, with a focus on vectorization and reparameterization techniques and the use of `targets` and `stantargets` for efficient and reproducible workflows.
+Participate in exercises in `docs/regression.qmd` or `docs/regression.html`.
+These exercises focus on vectorization, reparameterization, and using `targets` and `stantargets` for efficient, reproducible workflows.
+
+
+Try exercises in `docs/regression.qmd` or `docs/regression.html`.
+These exercises focus on vectorization, reparameterization, and using `targets` and `stantargets` for efficient, reproducible workflows.
