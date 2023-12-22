@@ -71,9 +71,5 @@ Enter number：
 
 ### Exercises
 
-Participate in exercises in `docs/regression.qmd` or `docs/regression.html`.
-These exercises focus on vectorization, reparameterization, and using `targets` and `stantargets` for efficient, reproducible workflows.
-
-
 Try exercises in `docs/regression.qmd` or `docs/regression.html`.
 These exercises focus on vectorization, reparameterization, and using `targets` and `stantargets` for efficient, reproducible workflows.
