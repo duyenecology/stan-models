@@ -64,7 +64,6 @@ rsconnect/
 *.docx
 *.pptx
 *.xslx
-*.html
 *.fdb_latexmk
 
 # cache from quarto
