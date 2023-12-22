@@ -8,14 +8,15 @@ This repository contains examples demonstrating the use of Stan for regression m
 
 - [R (>= 4.0.0)](https://cran.rstudio.com/)
 - [Quarto](https://quarto.org/): An open-source scientific and technical publishing system built on Pandoc
-- [cmdstan](https://mc-stan.org/users/interfaces/cmdstan): The shell interface to Stan
+- [cmdstan](https://mc-stan.org/users/interfaces/cmdstan): The shell interface to Stanj
 - [`renv`](https://rstudio.github.io/renv/): A dependency management toolkit for R.
-This will install the key packages including:
-	- `targets`
-	- `stantargets`
-	- `tachetypes`
-	- `cmdstanr`
-	- `tinytex`
+This will install the key packages, including:
+`targets`,
+`stantargets`,
+`tachetypes`,
+`cmdstanr`,
+`tinytex`,
+and ensure the installation of `cmdstan` and `TinyTex`.
 
 ## Usage
 
