@@ -8,4 +8,7 @@ if (Sys.info()[['sysname']] %in% c('Linux', 'Windows')) {
 		options(repos = c(CRAN = "https://cloud.r-project.org/"))
 		# options(renv.config.mran.enabled = TRUE) ## TRUE by default
 	}
-options(renv.config.repos.override = getOption("repos"))
+options(
+	renv.config.repos.override = getOption("repos"),
+  "CMDSTANR_NO_VER_CHECK"=TRUE
+)

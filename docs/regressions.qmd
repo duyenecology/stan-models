@@ -1,0 +1,249 @@
+---
+title: "Regression Models"
+author: "Masatoshi Katabuchi"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+fontsize: 11pt
+crossref:
+  fig-title: Fig.
+  fig-prefix: Fig.
+format:
+  html:
+    theme: codepro
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+    embed-resources: true
+    smooth-scroll: true
+    highlight-style: github
+---
+
+# Linear models
+
+```{r global_options, include=FALSE}
+library(tidyverse)
+library(here)
+library(targets)
+library(cmdstanr)
+library(gganimate)
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = FALSE,
+  cache = FALSE,
+  fig.align = "center",
+  fig.show = "hold",
+  root.dir = rprojroot::find_root('_targets.R')
+)
+
+source(here("R/functions.R"))
+```
+
+We consider a simple linear relationship for a response variable $y_i$:
+
+$$
+y_i = \alpha + \beta x_i + \epsilon_i \\
+$$
+
+where the error term $\epsilon_i$ is normally distributed:
+$$
+\epsilon_i \sim N(0, \sigma).
+$$
+
+
+Alternatively, we can say that $y_i$ follows a normal distribution with a mean of $\beta_1 + \beta_2 x_i$ and a standard deviation of $\sigma$.
+
+$$
+y_i \sim N(\alpha + \beta x_i, \sigma)
+$$
+
+
+Here is a Stan model (`stan/lm.stan`) for the linear regression:
+
+```{stan, file=here::here('stan/lm.stan'), echo=TRUE, eval=FALSE, output.var="lkasd"}
+```
+
+## Running the model in R
+
+To compile the Stan model:
+
+```{r}
+mod <- cmdstan_model(here("stan/lm.stan"))
+```
+
+Simulate data and fit the model (in practical, we use real data):
+
+```{r}
+set.seed(123)
+n <- 100
+x <- rnorm(n)
+y <- rnorm(n, 2 * x - 1, 0.6)
+data_list <- list(N = n, x = x, y = y)
+
+fit <- mod$sample(
+  data = data_list,
+  chains = 4,
+  parallel_chains = 4,
+  iter_warmup = 1000,
+  iter_sampling = 1000,
+  adapt_delta = 0.95,
+  max_treedepth = 15,
+  refresh = 1000,
+  seed = 123
+)
+```
+
+Obtain a summary:
+
+```{r}
+fit$summary()
+```
+
+Extract posterior draws as a data frame:
+
+```{r}
+fit$draws() |> posterior::as_draws_df()
+```
+
+Review sampler diagnostics:
+
+```{r}
+fit$sampler_diagnostics() |> posterior::as_draws_df()
+```
+
+## Integration with `targets` and `stantargets`
+
+Utilizing `targets` and `stantargets` in data analysis workflows offers significant benefits for efficiency and reproducibility.
+These tools streamline the process of managing complex analyses, ensuring that results are both reliable and consistently replicable.
+
+- <https://books.ropensci.org/targets/>
+
+- <https://docs.ropensci.org/stantargets/>
+
+```{r, eval=FALSE}
+# _targets.R
+library(targets)
+library(stantargets)
+library(cmdstanr)
+
+plan(multicore)
+options(clustermq.scheduler = "multicore")
+
+list(
+  tar_target(
+    lm_data, {
+      n <- 100
+      x <- rnorm(n)
+      y <- rnorm(n, 2 * x - 1, 0.6)
+      list(N = n, x = x, y = y)
+    }
+  ),
+  tar_stan_mcmc(
+    fit,
+    "stan/lm.stan",
+    data = lm_data,
+    refresh = 0,
+    chains = 4,
+    parallel_chains = getOption("mc.cores", 4),
+    iter_warmup = 1000,
+    iter_sampling = 1000,
+    adapt_delta = 0.95,
+    max_treedepth = 15,
+    seed = 123,
+    return_draws = TRUE,
+    return_diagnostics = TRUE,
+    return_summary = TRUE,
+    summaries = list(
+      mean = ~mean(.x),
+      sd = ~sd(.x),
+      mad = ~mad(.x),
+      ~posterior::quantile2(.x, probs = c(0.025, 0.05, 0.25, 0.5, 0.75, 0.95, 0.975)),
+      posterior::default_convergence_measures()
+    )
+  )
+)
+```
+
+```{r, eval=FALSE}
+tar_make()
+```
+
+Obtain a summary:
+
+```{r}
+withr::with_dir(rprojroot::find_root('_targets.R'),
+  tar_read(fit_summary_lm)
+)
+```
+
+Extract posterior draws as a data frame:
+
+```{r}
+withr::with_dir(rprojroot::find_root('_targets.R'),
+  tar_read(fit_draws_lm)
+)
+```
+
+Review sampler diagnostics:
+
+```{r}
+withr::with_dir(rprojroot::find_root('_targets.R'),
+  tar_read(fit_diagnostics_lm)
+)
+```
+
+## Vectorization
+
+Vectorization can be used to efficiently represent the linear model (especially when the number of predictors is large):
+
+$$
+\begin{align*}
+\mu &= \beta_1 + \beta_2 x_i \\
+    &= \boldsymbol{x} \cdot \boldsymbol{\beta}
+\end{align*}
+$$
+
+where the design matrix $\boldsymbol{x}$ (n $\times$ 2) and coefficient vector $\boldsymbol{\beta}$ (2 $\times$ 1) are defined as:
+
+$\boldsymbol{x} = \begin{bmatrix}
+1 & x_{1} \\
+1 & x_{2} \\
+\vdots & \vdots \\
+1 & x_{n}
+\end{bmatrix}$,
+$\boldsymbol{\beta} = \begin{bmatrix} \beta_1 \\ \beta_2 \end{bmatrix}$.
+
+
+We can update the above stan code as follows:
+
+```{stan, eval=FALSE, output.var="zkaje"}
+data {
+  matrix[N, 2] x;
+  // ...
+}
+
+parameters {
+  vector[2] beta;
+  // ...
+}
+
+model {
+  y ~ normal(beta * x, sigma);
+  // ...
+}
+```
+
+### Exercises
+
+1. Fit a linear model using the above vectorization approach within `targets` pipeline using `stantargets`.
+We have `lm_data` target already defined in `_targets.R`.
+
+# Multilevel models
+
+```{r, include=FALSE}
+schools_data <-
+  list(
+    J = 8,
+    y = c(28, 8, -3, 7, -1, 1, 18, 12),
+    sigma = c(15, 10, 16, 11, 9, 11, 10, 18))
+```
