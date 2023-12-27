@@ -16,7 +16,6 @@ format:
     smooth-scroll: true
     highlight-style: github
 ---
-
 # Linear models
 
 ```{r global_options, include=FALSE}
